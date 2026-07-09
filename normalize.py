@@ -36,6 +36,7 @@ DE-SCOPED (considered, deferred)
 
 from __future__ import annotations
 
+import json
 import re
 from itertools import combinations
 from typing import Optional
@@ -493,6 +494,15 @@ def main() -> None:
     canonicals, rejected = resolve(MESSY_RECORDS)
     canonicals.sort(key=lambda c: c["member_ids"])
 
+    # Dump the raw messy input first so the before/after is literal, not just a
+    # count — one compact JSON line per record (ensure_ascii=False keeps 中国 readable).
+    print("=" * 78)
+    print(f"RAW INPUT — {len(MESSY_RECORDS)} messy source records:")
+    print("=" * 78)
+    for r in MESSY_RECORDS:
+        print(f"    {json.dumps(r, ensure_ascii=False)}")
+
+    print()
     print("=" * 78)
     print(f"BEFORE:  {len(MESSY_RECORDS)} messy source records")
     print(f"AFTER :  {len(canonicals)} canonical entities")

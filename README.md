@@ -16,10 +16,52 @@ Every design decision is anchored to one test query:
 
 ## Run the prototype
 
+> **Heads-up:** this is a **command-line script, not a web app** — by design, the take-home's one runnable artifact. It needs no network, no API keys, no database; just Python 3.9+ and one pip package. Running it prints the entity-resolution before/after directly to your terminal.
+
+The most reliable way on any machine (macOS / Linux / Windows) is a virtual environment — it sidesteps the `externally-managed-environment` pip error on newer Python installs:
+
 ```bash
-pip install rapidfuzz     # only third-party dependency; no network, no API keys
-python normalize.py       # use python3 if your system has no `python` alias
+# from the repo root
+python3 -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements.txt  # installs rapidfuzz, the only dependency
+python normalize.py
 ```
+
+Or, without a venv:
+
+```bash
+pip3 install rapidfuzz && python3 normalize.py
+```
+
+**Expected output** (first lines — the full run dumps the raw messy input, then prints 8 canonical records plus a fail-safe log):
+
+```
+==============================================================================
+RAW INPUT — 10 messy source records:
+==============================================================================
+    {"id": "r1", "name": "CATL", "source": "aggregator", "country": "China", ...}
+    {"id": "r2", "name": "Contemporary Amperex Technology Co., Ltd.", ...}
+    ...
+
+==============================================================================
+BEFORE:  10 messy source records
+AFTER :  8 canonical entities
+==============================================================================
+
+### Contemporary Amperex Technology Co., Ltd.
+    3 record(s) fused: r1, r2, r3
+    ...
+```
+
+**Troubleshooting**
+
+| Symptom | Fix |
+|---|---|
+| `python: command not found` | Use `python3` (macOS/Linux ship no `python` alias) |
+| `ModuleNotFoundError: No module named 'rapidfuzz'` | Run `pip3 install rapidfuzz` (or the venv steps above) |
+| `error: externally-managed-environment` from pip | Use the venv steps above (or `pip3 install rapidfuzz --break-system-packages`) |
+| Syntax error on run | Check `python3 --version` — requires Python 3.9+ |
 
 It resolves **10 messy mocked supplier records → 8 canonical entities** and prints each canonical record with field-level provenance, per-field confidence, `unverified` flags, relationships, and a fail-safe log of refused merges. Output is idempotent (byte-identical on re-run).
 
